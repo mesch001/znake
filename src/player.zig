@@ -1,10 +1,11 @@
 const print = @import("std").debug.print;
+const bounds = @import("bounds.zig");
+
 pub const Direction = enum {
     Up,
     Down,
     Left,
     Right,
-    None,
 };
 
 const Point = struct {
@@ -14,73 +15,53 @@ const Point = struct {
 
 pub const Player = struct {
     location: Point,
-    direction: Direction,
     size: i32,
+    direction: Direction,
     head: [*:0]const u8,
 
-    pub fn init(x: i32, y: i32) Player {
+    pub fn init() Player {
         const location: Point = .{
-            .x = x,
-            .y = y,
+            .x = bounds.WIDTH / 2,
+            .y = bounds.HEIGHT / 2,
         };
 
-       return Player {
-            .location = location,
-            .direction = Direction.None,
-            .size = 20,
-            .head = "="
-        };
+        return Player{ .location = location, .size = 20, .direction = Direction.Right, .head = "=" };
     }
 
-    pub fn move(self: *Player, direction: Direction) void {
-        var new_location = self.location;
+    pub fn change_direction(self: *Player, direction: Direction) void {
+        self.direction = direction;
+    }
 
-        switch (direction) {
-            Direction.Up =>{ 
-                self.direction = direction;
-                new_location.y -= @divFloor(self.size, 2);
-            },
-            Direction.Down => {
-                self.direction = direction;
-                new_location.y += @divFloor(self.size, 2);
-            },
-            Direction.Left =>{ 
-                self.direction = direction;
-                new_location.x -= @divFloor(self.size, 2);
-            },
-            Direction.Right =>{ 
-                self.direction = direction;
-                new_location.x += @divFloor(self.size, 2);
-            },
-            Direction.None => {
-                switch (self.direction) {
-                    Direction.Up => new_location.y -= @divFloor(self.size, 2),
-                    Direction.Down => new_location.y += @divFloor(self.size, 2),
-                    Direction.Left => new_location.x -= @divFloor(self.size, 2),
-                    Direction.Right => new_location.x += @divFloor(self.size, 2),
-                    Direction.None => {},
-            }},
+    pub fn move(self: *Player) bool {
+        if (in_bounds(self.location)) {
+            switch (self.direction) {
+                Direction.Up => {
+                    self.location.y -= movement(self.size);
+                },
+                Direction.Down => {
+                    self.location.y += movement(self.size);
+                },
+                Direction.Left => {
+                    self.location.x -= movement(self.size);
+                },
+                Direction.Right => {
+                    self.location.x += movement(self.size);
+                },
+            }
+            return false;
+        } else {
+            return true;
         }
-        
-        self.location = new_location;
     }
 };
 
-//if (rl.isKeyPressed(keys.UP)) {
-//   if (snake.y > 0 + snake.size) {
-//   } 
-// else if (rl.isKeyPressed(keys.DOWN)) {
-//   if (snake.y < HEIGHT - snake.size) {
-//       snake.y  ;
-//   } 
-//
+fn movement(speed: i32) i32 {
+    return @divFloor(speed, 8);
+}
 
-//f (rl.isKeyPressed(keys.LEFT)) {
-//   if (snake.x > 0 + snake.size) {
-//       snake.x  ;
-//   }
-// else if (rl.isKeyPressed(keys.RIGHT)) {
-//   if (snake.x < WIDTH - snake.size) {
-//       snake ;
-//   }
-
+fn in_bounds(location: Point) bool {
+    return (location.x > bounds.LEFT_BOUND) and
+        (location.x < (bounds.RIGHT_BOUND - bounds.BOUND)) and
+        (location.y > bounds.UPPER_BOUND) and
+        (location.y < bounds.LOWER_BOUND - bounds.BOUND);
+}
