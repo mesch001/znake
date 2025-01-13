@@ -1,0 +1,2 @@
+# znake
+Snake in zig
