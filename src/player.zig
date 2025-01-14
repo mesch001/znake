@@ -1,5 +1,8 @@
+const std = @import("std");
 const print = @import("std").debug.print;
-const bounds = @import("bounds.zig");
+const util = @import("util.zig");
+
+const SPEED = 8;
 
 pub const Direction = enum {
     Up,
@@ -8,24 +11,20 @@ pub const Direction = enum {
     Right,
 };
 
-const Point = struct {
-    x: i32,
-    y: i32,
-};
 
 pub const Player = struct {
-    location: Point,
-    size: i32,
+    location: util.Point,
     direction: Direction,
     head: [*:0]const u8,
+    points: u32 = 0,
 
     pub fn init() Player {
-        const location: Point = .{
-            .x = bounds.WIDTH / 2,
-            .y = bounds.HEIGHT / 2,
+        const location: util.Point = .{
+            .x = util.WIDTH / 2,
+            .y = util.HEIGHT / 2,
         };
 
-        return Player{ .location = location, .size = 20, .direction = Direction.Right, .head = "=" };
+        return Player{ .location = location, .direction = Direction.Right, .head = "=" };
     }
 
     pub fn change_direction(self: *Player, direction: Direction) void {
@@ -33,19 +32,19 @@ pub const Player = struct {
     }
 
     pub fn move(self: *Player) bool {
-        if (in_bounds(self.location)) {
+        if (util.in_bounds(self.location)) {
             switch (self.direction) {
                 Direction.Up => {
-                    self.location.y -= movement(self.size);
+                    self.location.y -= movement(util.SIZE);
                 },
                 Direction.Down => {
-                    self.location.y += movement(self.size);
+                    self.location.y += movement(util.SIZE);
                 },
                 Direction.Left => {
-                    self.location.x -= movement(self.size);
+                    self.location.x -= movement(util.SIZE);
                 },
                 Direction.Right => {
-                    self.location.x += movement(self.size);
+                    self.location.x += movement(util.SIZE);
                 },
             }
             return false;
@@ -53,15 +52,23 @@ pub const Player = struct {
             return true;
         }
     }
+
+    pub fn has_eaten(self: *Player, other: util.Point) bool {
+        const boundary = util.BOUND/2;
+        if ((self.location.x > (other.x - boundary)) and
+            (self.location.x < (other.x + boundary)) and
+            (self.location.y > (other.y - boundary)) and
+            (self.location.y < (other.y + boundary))) {
+            self.points += 1;
+            return true;
+        } else {
+            return false;
+        }
+    }
 };
 
 fn movement(speed: i32) i32 {
-    return @divFloor(speed, 8);
+    return @divFloor(speed, SPEED);
 }
 
-fn in_bounds(location: Point) bool {
-    return (location.x > bounds.LEFT_BOUND) and
-        (location.x < (bounds.RIGHT_BOUND - bounds.BOUND)) and
-        (location.y > bounds.UPPER_BOUND) and
-        (location.y < bounds.LOWER_BOUND - bounds.BOUND);
-}
+
