@@ -7,7 +7,13 @@ pub const LOWER_BOUND = HEIGHT - 10;
 pub const LEFT_BOUND = 0 + 10;
 pub const RIGHT_BOUND = WIDTH - 10;
 
-pub const SIZE = 20;
+pub const SCOREBOARD_X = 20;
+pub const SCOREBOARD_Y = 20;
+
+pub const SNAKE_HEAD = "+";
+pub const SNAKE_TAIL = "-";
+pub const FOOD = "#";
+pub const SPRITE_SIZE = 20;
 
 pub const Point = struct {
     x: i32,

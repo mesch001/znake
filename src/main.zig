@@ -2,11 +2,14 @@ const std = @import("std");
 const rl = @import("raylib");
 const player = @import("player.zig");
 const keys = @import("keymap.zig");
-const bounds = @import("util.zig");
+const util = @import("util.zig");
 const foods = @import("food.zig");
+const unicode = std.unicode;
+
+const POINTS = "Points: ";
 
 pub fn main() !void {
-    rl.initWindow(bounds.WIDTH, bounds.HEIGHT, "znake");
+    rl.initWindow(util.WIDTH, util.HEIGHT, "znake");
     defer rl.closeWindow();
 
     rl.setTargetFPS(60);
@@ -26,8 +29,12 @@ pub fn main() !void {
             rl.clearBackground(rl.Color.dark_gray);
             draw_bounds();
 
-            rl.drawText(snake.head, snake.location.x, snake.location.y, bounds.SIZE, rl.Color.black);
-            rl.drawText(food.symbol, food.location.x, food.location.y, bounds.SIZE, rl.Color.black);
+            rl.drawText(util.SNAKE_HEAD, snake.location.x, snake.location.y, util.SPRITE_SIZE, rl.Color.black);
+            rl.drawText(util.FOOD, food.location.x, food.location.y, util.SPRITE_SIZE, rl.Color.black);
+            var b: [13:0] u8 = undefined;
+            @memset(&b, ' ');
+            const points: [*:0]const u8 = @ptrCast(std.fmt.bufPrint(&b, "Points: {d}", .{snake.points}) catch undefined);
+            rl.drawText(points, util.SCOREBOARD_X, util.SCOREBOARD_Y, util.SPRITE_SIZE, rl.Color.black);
 
             if (rl.isKeyPressed(keys.UP))
                 snake.change_direction(player.Direction.Up);
@@ -41,7 +48,6 @@ pub fn main() !void {
             reset = snake.move();
 
             if (snake.has_eaten(food.location)) {
-                std.debug.print("Food eaten\n", .{});
                 food = foods.Food.generate();
             }
         }
@@ -52,11 +58,11 @@ pub fn main() !void {
 
 fn draw_bounds() void {
     // Top Boundary
-    rl.drawRectangle(0, 0, bounds.WIDTH, bounds.BOUND, rl.Color.black);
+    rl.drawRectangle(0, 0, util.WIDTH, util.BOUND, rl.Color.black);
     // Left Boundary
-    rl.drawRectangle(0, 0, bounds.BOUND, bounds.HEIGHT, rl.Color.black);
+    rl.drawRectangle(0, 0, util.BOUND, util.HEIGHT, rl.Color.black);
     // Right Boundary
-    rl.drawRectangle(bounds.RIGHT_BOUND, 0, bounds.BOUND, bounds.HEIGHT, rl.Color.black);
+    rl.drawRectangle(util.RIGHT_BOUND, 0, util.BOUND, util.HEIGHT, rl.Color.black);
     // Lower Boundary
-    rl.drawRectangle(0, bounds.LOWER_BOUND, bounds.WIDTH, bounds.BOUND, rl.Color.black);
+    rl.drawRectangle(0, util.LOWER_BOUND, util.WIDTH, util.BOUND, rl.Color.black);
 }
