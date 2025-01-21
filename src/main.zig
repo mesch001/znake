@@ -30,8 +30,12 @@ pub fn main() !void {
             draw_bounds();
 
             rl.drawText(util.SNAKE_HEAD, snake.location.x, snake.location.y, util.SPRITE_SIZE, rl.Color.black);
+            for (snake.tails[0..snake.num_tails]) |tail| {
+                rl.drawText(util.SNAKE_TAIL, tail.x, tail.y, util.SPRITE_SIZE, rl.Color.black);
+            }
             rl.drawText(util.FOOD, food.location.x, food.location.y, util.SPRITE_SIZE, rl.Color.black);
-            var b: [13:0] u8 = undefined;
+
+            var b: [13:0]u8 = undefined;
             @memset(&b, ' ');
             const points: [*:0]const u8 = @ptrCast(std.fmt.bufPrint(&b, "Points: {d}", .{snake.points}) catch undefined);
             rl.drawText(points, util.SCOREBOARD_X, util.SCOREBOARD_Y, util.SPRITE_SIZE, rl.Color.black);

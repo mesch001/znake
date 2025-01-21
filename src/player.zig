@@ -15,8 +15,9 @@ pub const Player = struct {
     location: util.Point,
     direction: Direction,
     points: u32 = 0,
-    tail: [255]util.Point = undefined,
+    tails: [255]util.Point = undefined,
     num_tails: u8 = 0,
+    new_tail: bool = false,
 
     pub fn init() Player {
         const location: util.Point = .{
@@ -24,7 +25,7 @@ pub const Player = struct {
             .y = util.HEIGHT / 2,
         };
 
-        return Player{ .location = location, .direction = Direction.Right};
+        return Player{ .location = location, .direction = Direction.Right };
     }
 
     pub fn change_direction(self: *Player, direction: Direction) void {
@@ -33,21 +34,42 @@ pub const Player = struct {
 
     pub fn move(self: *Player) bool {
         if (util.in_bounds(self.location)) {
-            switch (self.direction) {
-                Direction.Up => {
-                    self.location.y -= movement(util.SPRITE_SIZE);
-                },
-                Direction.Down => {
-                    self.location.y += movement(util.SPRITE_SIZE);
-                },
-                Direction.Left => {
-                    self.location.x -= movement(util.SPRITE_SIZE);
-                },
-                Direction.Right => {
-                    self.location.x += movement(util.SPRITE_SIZE);
-                },
+            if (!eat_self(self)) {
+                const distance = util.SPRITE_SIZE / 8;
+
+                var current = self.location;
+                for (0..self.num_tails) |i| {
+                    const save = self.tails[i];
+                    self.tails[i] = current;
+                    current = save;
+                }
+
+                const location = self.location;
+
+                switch (self.direction) {
+                    Direction.Up => {
+                        self.location.y -= distance;
+                    },
+                    Direction.Down => {
+                        self.location.y += distance;
+                    },
+                    Direction.Left => {
+                        self.location.x -= distance;
+                    },
+                    Direction.Right => {
+                        self.location.x += distance;
+                    },
+                }
+
+                if (self.new_tail) {
+                    self.add_tail(location);
+                    self.new_tail = false;
+                }
+
+                return false;
+            } else {
+                return true;
             }
-            return false;
         } else {
             return true;
         }
@@ -60,16 +82,25 @@ pub const Player = struct {
             (self.location.y > (other.y - boundary)) and
             (self.location.y < (other.y + boundary)))
         {
-            self.points += 1;
-            self.tail[self.num_tails] = self.location;
-            self.num_tails += 1;
+            self.new_tail = true;
             return true;
         } else {
             return false;
         }
     }
-};
 
-fn movement(speed: i32) i32 {
-    return @divFloor(speed, SPEED);
-}
+    fn eat_self(self: *Player) bool {
+        for (self.tails) |tail| {
+            if (self.location.x == tail.x and self.location.y == tail.y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    fn add_tail(self: *Player, location: util.Point) void {
+        self.points += 1;
+        self.tails[self.num_tails] = location;
+        self.num_tails += 1;
+    }
+};
